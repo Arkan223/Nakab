@@ -960,15 +960,28 @@
             state.lastSeen[state.activeRoom] = Date.now();
         }
 
-        function closeChat() {
+                function closeChat() {
             if (state.activeRoom) {
-                state.lastSeen[state.activeRoom] = Date.now();
+                // تحديث وقت آخر مشاهدة للغرفة الحالية بلحظة الخروج
+                const now = Date.now();
+                state.lastSeen[state.activeRoom] = now;
                 localStorage.setItem('arkan_last_seen', JSON.stringify(state.lastSeen));
+                
+                // تصفير العداد للغرفة اللي جنت بيها حتى ما يبقى معلق
+                state.unreadCounts[state.activeRoom] = 0;
+                updateUnreadUI(state.activeRoom, 0);
+
+                // إيقاف مراقبة الرسائل لهذي الغرفة مؤقتاً لتوفير البطارية والبيانات
                 db.ref('messages/' + state.activeRoom).off();
             }
+            
             state.activeRoom = null;
             document.getElementById('chat-window').classList.add('hidden');
+            
+            // إعادة تشغيل المراقب العام للتأكد من التقاط أي رسالة جديدة تجي هسة
+            initGlobalChatWatchers(); 
         }
+
 
         // --- 11. أدوات الإدارة والمساعدة ---
         function approveUser(key) {
