@@ -2,13 +2,13 @@ importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js'
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  apiKey: "AIzaSyD-placeholder",
+  apiKey: "AIzaSyApPJjEWPfz5njRS714IuleqJ6fzrroEZE",
   authDomain: "arkanlab-99711.firebaseapp.com",
   databaseURL: "https://arkanlab-99711-default-rtdb.firebaseio.com/",
   projectId: "arkanlab-99711",
   storageBucket: "arkanlab-99711.appspot.com",
   messagingSenderId: "871697042781",
-  appId: "1:871697042781:web:placeholder"
+  appId: "1:871697042781:web:74e6fbdd5f1196aeba2cb4"
 });
 
 const messaging = firebase.messaging();
