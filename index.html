@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="منظومة إدارة النخب الشبابية - النسخة السابعة عشر المطورة">
+    <meta name="author" content="Arkan Al-Badri">
+    <title>منظومة النخب | Arkan Master V17 Pro Plus</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+        
+        :root {
+            --primary-color: #064e3b; 
+            --admin-bg: #020617; 
+            --accent-gold: #fbbf24;
+            --danger-red: #e11d48;
+            --soft-slate: #f8fafc;
+            --glass-white: rgba(255, 255, 255, 0.05);
+            --notification-green: #10b981;
+        }
+
+        html { font-size: 14px; }
+        @media (min-width: 640px) { html { font-size: 16px; } }
+        
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            font-family: 'Tajawal', sans-serif; 
+            box-sizing: border-box; 
+            outline: none !important;
+            user-select: none;
+        }
+
+        body { 
+            background-color: var(--soft-slate); 
+            margin: 0; 
+            overflow-x: hidden; 
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: white;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.1);
+        }
+
+        h1, h2, h3 { letter-spacing: -0.02em; }
+        .text-huge { font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 900; }
+        .text-standard { font-size: 0.95rem; font-weight: 600; }
+        .text-tiny { font-size: 0.75rem; font-weight: 800; }
+
+        .elite-card {
+            background: white;
+            border-radius: 2rem;
+            border: 1px solid #f1f5f9;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .elite-card:active { transform: scale(0.98); }
+
+        #notification-center {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+        .notif-toast {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 1.2rem;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInDown 0.5s forwards, fadeOut 0.5s 3.5s forwards;
+            pointer-events: auto;
+        }
+
+        .admin-view {
+            background: var(--admin-bg);
+            color: white;
+            min-height: 100vh;
+        }
+        .glass-ui {
+            background: var(--glass-white);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1.8rem;
+        }
+
+        .nav-dock {
+            position: fixed;
+            bottom: 0;
+            max-width: 500px;
+            width: 100%;
+            height: 80px;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            display: flex;
+            border-top: 1px solid #f1f5f9;
+            z-index: 5000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 0.7rem;
+            font-weight: 800;
+            transition: 0.3s;
+        }
+        .nav-btn.active { color: var(--primary-color); }
+        .nav-btn i { font-size: 1.4rem; margin-bottom: 4px; }
+
+        .admin-action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        .chat-area {
+            background: #f1f5f9;
+            background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+        }
+        .msg-bubble {
+            max-width: 80%;
+            padding: 1rem;
+            border-radius: 1.5rem;
+            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            position: relative;
+        }
+        .msg-me { background: var(--primary-color); color: white; align-self: flex-end; border-bottom-right-radius: 0.2rem; }
+        .msg-them { background: white; color: #334155; align-self: flex-start; border-bottom-left-radius: 0.2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        .master-loader {
+            position: fixed; inset: 0; background: white; z-index: 99999;
+            display: flex; flex-direction: column; items-center justify-center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 5px solid #f1f5f9;
+            border-top-color: var(--primary-color); border-radius: 50%;
+            animation: spin 1s infinite linear;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        input, textarea { font-size: 1rem !important; }
+
+        .excel-tool-btn {
+            background: #15803d;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.3s;
+        }
+        .excel-tool-btn:hover { background: #166534; }
+
+        .admin-note-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px dashed #fbbf24;
+            padding: 10px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger-red);
+            color: white;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 20px;
+            border: 2px solid white;
+            font-weight: 900;
+            animation: pulse-badge 1.5s infinite;
+            z-index: 100;
+        }
+
+        @keyframes pulse-badge {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(225, 29, 72, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+        }
+        
+        .room-relative { position: relative; }
+
+        /* تمديد الكود بستايلات إضافية */
+        .delete-btn-hover:hover { color: #ff4d4d !important; }
+        .message-timestamp { font-size: 7px; color: rgba(255,255,255,0.5); margin-top: 4px; display: block; }
+        .admin-trash-trigger {
+            opacity: 0;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .msg-bubble:hover .admin-trash-trigger { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="loader-screen" class="master-loader">
+        <div class="flex flex-col items-center">
+            <div class="spinner"></div>
+            <p class="mt-4 font-black text-emerald-900 text-[10px] tracking-widest uppercase animate-pulse">Arkan Master System V17 Pro Plus</p>
+        </div>
+    </div>
+
+    <div id="notification-center"></div>
+
+    <div class="app-container">
+
+        <section id="view-auth" class="flex flex-col items-center justify-center p-8 min-h-screen">
+            <div class="w-full max-w-xs space-y-10 text-center animate__animated animate__fadeIn">
+                <div class="w-24 h-24 bg-emerald-950 rounded-[2.5rem] shadow-2xl flex items-center justify-center rotate-6 mx-auto border-4 border-emerald-50">
+                    <i class="fa-solid fa-shield-halved text-white text-4xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-black text-slate-900">بوابة النخب</h1>
+                    <p class="text-[10px] text-emerald-700 font-black tracking-widest uppercase mt-2">Dhi Qar Management System</p>
+                </div>
+                
+                <div class="space-y-4 pt-6">
+                    <input type="tel" id="input-auth-phone" placeholder="رقم الهاتف" class="w-full bg-slate-50 border-2 border-slate-100 p-5 rounded-3xl text-center font-black text-xl focus:border-emerald-900 transition-all">
+                    
+                    <div id="form-register" class="hidden space-y-3 animate__animated animate__fadeInUp">
+                        <input type="text" id="reg-name" placeholder="الاسم الكامل" class="w-full p-4 bg-white border rounded-2xl font-bold text-sm">
+                        <input type="text" id="reg-job" placeholder="المسمى الوظيفي" class="w-full p-4 bg-white border rounded-2xl font-bold text-sm">
+                        <label class="flex flex-col items-center p-4 border-2 border-dashed border-emerald-200 rounded-2xl bg-emerald-50/50 cursor-pointer">
+                            <i class="fa-solid fa-id-card text-emerald-600 mb-2"></i>
+                            <span id="label-id-status" class="text-[9px] font-black text-emerald-700">إرفاق صورة الهوية</span>
+                            <input type="file" class="hidden" accept="image/*" onchange="handleFileSelect(this, 'label-id-status', 'id_img')">
+                        </label>
+                    </div>
+
+                    <button onclick="processAuth()" id="btn-auth-action" class="w-full bg-emerald-950 text-white font-black py-5 rounded-3xl shadow-xl active:scale-95 transition-all">دخول المنظومة</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-member" class="hidden flex flex-col min-h-screen pb-24">
+            <header class="p-8 bg-emerald-950 text-white rounded-b-[3.5rem] shadow-lg">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-4">
+                        <div id="member-avatar" class="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center text-2xl font-black border-2 border-white/10 shadow-inner"></div>
+                        <div>
+                            <h2 id="member-name-display" class="font-black text-lg"></h2>
+                            <p class="text-[8px] text-emerald-400 font-black tracking-[0.3em] uppercase">Verified Elite Member</p>
+                        </div>
+                    </div>
+                    <button onclick="systemLogout()" class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center"><i class="fa-solid fa-power-off text-sm"></i></button>
+                </div>
+            </header>
+
+            <main class="p-6 flex-grow overflow-y-auto no-scrollbar">
+                <div id="subview-news" class="member-subview animate__animated animate__fadeIn">
+                    <div id="member-post-editor" class="hidden elite-card border-amber-200 bg-amber-50/30 mb-6">
+                         <h4 class="font-black text-[10px] text-amber-700 mb-3 uppercase tracking-tighter">محرر النخبة المخول</h4>
+                         <textarea id="member-news-input" rows="3" class="w-full bg-white border border-amber-100 rounded-xl p-3 text-xs font-bold mb-3" placeholder="اكتب خبراً للنشر..."></textarea>
+                         <button onclick="publishMemberNews()" class="w-full bg-amber-600 text-white py-3 rounded-xl text-[10px] font-black shadow-lg">نشر الخبر العام</button>
+                    </div>
+                    <div id="container-news" class="space-y-4"></div>
+                </div>
+
+                <div id="subview-rooms" class="member-subview hidden animate__animated animate__fadeIn">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-black text-slate-800">غرف النقاش</h3>
+                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black">مشفرة</span>
+                    </div>
+                    <div id="container-rooms" class="space-y-3"></div>
+                </div>
+
+                <div id="subview-orders" class="member-subview hidden animate__animated animate__fadeIn">
+                    <div id="container-my-orders" class="space-y-4 mb-8"></div>
+                    <div class="elite-card shadow-sm border-emerald-50">
+                        <h4 class="font-black text-emerald-950 mb-4 flex items-center gap-2"><i class="fa-solid fa-pen-nib"></i> طلب جديد</h4>
+                        <div class="space-y-4">
+                            <input type="text" id="order-to" placeholder="الجهة الموجه إليها" class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm">
+                            <textarea id="order-body" rows="3" class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm resize-none" placeholder="نص المعاملة..."></textarea>
+                            <label class="flex items-center justify-center p-4 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 cursor-pointer">
+                                <span id="label-order-file" class="text-[9px] font-black text-slate-400">📎 إرفاق ملف / صورة</span>
+                                <input type="file" class="hidden" accept="image/*" onchange="handleFileSelect(this, 'label-order-file', 'order_file')">
+                            </label>
+                            <button onclick="sendOrder()" class="w-full bg-emerald-950 text-white font-black py-4 rounded-2xl shadow-lg">إرسال الطلب الآن</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <nav class="nav-dock">
+                <button onclick="toggleMemberSub('news')" class="nav-btn active" id="btn-nav-news"><i class="fa-solid fa-newspaper"></i><span>الأخبار</span></button>
+                <button onclick="toggleMemberSub('rooms')" class="nav-btn" id="btn-nav-rooms">
+                    <div class="relative">
+                        <i class="fa-solid fa-comments"></i>
+                        <div id="global-unread-badge" class="hidden absolute -top-2 -right-2 bg-red-600 text-[8px] text-white min-w-[18px] h-[18px] rounded-full flex items-center justify-center font-black border-2 border-white animate-pulse">0</div>
+                    </div>
+                    <span>الدردشة</span>
+                </button>
+                <button onclick="toggleMemberSub('orders')" class="nav-btn" id="btn-nav-orders"><i class="fa-solid fa-file-contract"></i><span>المعاملات</span></button>
+            </nav>
+        </section>
+
+        <section id="view-admin" class="hidden admin-view fixed inset-0 z-[6000] flex flex-col overflow-hidden">
+            <header class="p-8 pb-4 flex justify-between items-end">
+                <div>
+                    <h1 class="text-2xl font-black italic">Arkan Master</h1>
+                    <p class="text-[9px] text-emerald-500 font-black tracking-widest mt-1 uppercase">Command & Control Center</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="systemLogout()" class="w-12 h-12 glass-ui flex items-center justify-center"><i class="fa-solid fa-power-off text-emerald-400"></i></button>
+                </div>
+            </header>
+
+            <div class="flex gap-2 p-6 overflow-x-auto no-scrollbar">
+                <button onclick="toggleAdminSub('users')" class="admin-tab bg-emerald-600 text-white px-6 py-3 rounded-2xl font-black text-[10px] whitespace-nowrap shadow-xl">الأعضاء</button>
+                <button onclick="toggleAdminSub('broadcast')" class="admin-tab glass-ui text-white/40 px-6 py-3 rounded-2xl font-black text-[10px] whitespace-nowrap">النشر</button>
+                <button onclick="toggleAdminSub('orders')" class="admin-tab glass-ui text-white/40 px-6 py-3 rounded-2xl font-black text-[10px] whitespace-nowrap">المعاملات</button>
+                <button onclick="toggleAdminSub('chats')" class="admin-tab glass-ui text-white/40 px-6 py-3 rounded-2xl font-black text-[10px] whitespace-nowrap">الغرف</button>
+            </div>
+
+            <main class="flex-grow overflow-y-auto p-6 pb-12 no-scrollbar">
+                
+                <div id="admin-sub-users" class="admin-pane space-y-8 animate__animated animate__fadeIn">
+                    <div class="flex gap-2 mb-4">
+                        <button onclick="exportUsersToExcel()" class="excel-tool-btn">
+                            <i class="fa-solid fa-file-export"></i> تصدير إكسل
+                        </button>
+                        <label class="excel-tool-btn cursor-pointer">
+                            <i class="fa-solid fa-file-import"></i> استيراد أعضاء
+                            <input type="file" id="excel-import-input" class="hidden" accept=".xlsx, .xls" onchange="importUsersFromExcel(this)">
+                        </label>
+                    </div>
+                    <div>
+                        <h4 class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-4">بانتظار الموافقة</h4>
+                        <div id="list-pending-users" class="space-y-3"></div>
+                    </div>
+                    <div>
+                        <h4 class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-4">أعضاء الفريق</h4>
+                        <div id="list-active-users" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <div id="admin-sub-broadcast" class="admin-pane hidden animate__animated animate__fadeIn">
+                    <div class="glass-ui p-6 space-y-4">
+                        <textarea id="admin-news-input" rows="4" class="w-full bg-black/30 border border-white/10 rounded-2xl p-4 text-white font-bold text-sm outline-none" placeholder="نص المنشور الجديد..."></textarea>
+                        <label class="flex items-center justify-center p-4 border border-dashed border-white/20 rounded-2xl cursor-pointer">
+                            <span id="label-admin-img" class="text-[9px] font-black text-white/30 uppercase">إرفاق صورة للمنشور</span>
+                            <input type="file" class="hidden" accept="image/*" onchange="handleFileSelect(this, 'label-admin-img', 'news_img')">
+                        </label>
+                        <button onclick="publishNews()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-xl">نشر المنشور الآن</button>
+                    </div>
+                    
+                    <div class="mt-10">
+                        <h4 class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-4">أرشيف منشوراتي</h4>
+                        <div id="list-news-history" class="space-y-4"></div>
+                    </div>
+                </div>
+
+                <div id="admin-sub-orders" class="admin-pane hidden animate__animated animate__fadeIn">
+                    <div id="list-all-orders" class="space-y-4"></div>
+                </div>
+
+                <div id="admin-sub-chats" class="admin-pane hidden animate__animated animate__fadeIn">
+                    <div class="glass-ui p-4 flex gap-3 mb-6">
+                        <input type="text" id="admin-room-name" class="flex-grow bg-transparent border-b border-white/20 p-2 text-white font-bold text-xs" placeholder="اسم الغرفة">
+                        <button onclick="createRoom()" class="bg-amber-500 text-black px-6 rounded-xl font-black text-[10px]">تأسيس</button>
+                    </div>
+                    <div id="list-admin-rooms" class="space-y-3"></div>
+                </div>
+            </main>
+        </section>
+
+        <div id="chat-window" class="hidden fixed inset-0 bg-white z-[9000] flex flex-col animate__animated animate__slideInLeft">
+            <header class="p-6 bg-emerald-950 text-white flex items-center justify-between shadow-xl">
+                <div class="flex items-center gap-4">
+                    <button onclick="closeChat()" class="w-10 h-10 flex items-center justify-center bg-white/10 rounded-xl"><i class="fa-solid fa-chevron-right"></i></button>
+                    <div>
+                        <h3 id="chat-title" class="font-black text-sm">الدردشة العامة</h3>
+                        <p class="text-[8px] text-emerald-400 font-black uppercase tracking-widest mt-0.5">End-to-End Encrypted</p>
+                    </div>
+                </div>
+            </header>
+            <div id="chat-scroller" class="flex-grow overflow-y-auto p-6 flex flex-col chat-area no-scrollbar"></div>
+            <div class="p-4 bg-white border-t flex gap-3 pb-8">
+                <input type="text" id="msg-input" class="flex-grow bg-slate-100 p-4 rounded-2xl font-bold text-sm outline-none" placeholder="اكتب رسالة...">
+                <button onclick="sendMsg()" class="w-14 h-14 bg-emerald-950 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg active:scale-90"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. الإعدادات الأساسية ---
+        const firebaseConfig = { databaseURL: "https://arkanlab-99711-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        const ROOT_CODE = "79917991";
+        let state = {
+            user: null,
+            isAdmin: false,
+            tempFiles: {},
+            activeRoom: null,
+            allUsers: {},
+            lastNewsTime: Date.now(),
+            lastMsgTime: Date.now(),
+            unreadCounts: {},
+            lastSeen: JSON.parse(localStorage.getItem('arkan_last_seen') || "{}"),
+            notifSound: new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3')
+        };
+
+        // --- 2. التحكم في الشاشة والتحميل ---
+        window.onload = () => {
+            const cached = localStorage.getItem('arkan_session_v17');
+            
+            if (Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+
+            setTimeout(() => {
+                const loader = document.getElementById('loader-screen');
+                loader.classList.add('animate__fadeOut');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    if (cached) {
+                        state.user = JSON.parse(cached);
+                        state.isAdmin = (state.user.role === 'admin');
+                        bootApp();
+                    }
+                }, 500);
+            }, 2000);
+        };
+
+        // --- 3. نظام الإشعارات المطور ---
+        function showNotif(text, type = 'info') {
+            const center = document.getElementById('notification-center');
+            const toast = document.createElement('div');
+            toast.className = 'notif-toast';
+            toast.innerHTML = `<i class="fa-solid fa-bell"></i> <span class="text-xs font-black">${text}</span>`;
+            center.appendChild(toast);
+            
+            state.notifSound.play().catch(() => {});
+
+            if (navigator.vibrate) navigator.vibrate(100);
+
+            setTimeout(() => {
+                toast.classList.add('animate__fadeOut');
+                setTimeout(() => toast.remove(), 500);
+            }, 3500);
+        }
+
+        function triggerExternalNotif(title, body) {
+            if (Notification.permission === "granted") {
+                const n = new Notification(title, { 
+                    body, 
+                    icon: 'https://cdn-icons-png.flaticon.com/512/1041/1041916.png',
+                    badge: 'https://cdn-icons-png.flaticon.com/512/1041/1041916.png'
+                });
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            }
+        }
+
+        // --- 4. معالجة الدخول ---
+        async function processAuth() {
+            const phoneInput = document.getElementById('input-auth-phone');
+            const phone = phoneInput.value.trim();
+            if (!phone) return showNotif("أدخل رقم الهاتف أولاً");
+
+            if (phone === ROOT_CODE) {
+                state.user = { name: "أركان البدري", phone: "ADMIN_ROOT", role: "admin" };
+                state.isAdmin = true;
+                saveAndBoot();
+                return;
+            }
+
+            const cleanPhone = phone.startsWith('0') ? '964' + phone.substring(1) : phone;
+            const snap = await db.ref('users/' + cleanPhone).once('value');
+
+            if (snap.exists()) {
+                const userData = snap.val();
+                if (userData.status === 'pending') {
+                    showNotif("حسابك بانتظار تفعيل أركان البدري");
+                } else {
+                    state.user = userData;
+                    state.isAdmin = (userData.role === 'admin');
+                    saveAndBoot();
+                }
+            } else {
+                handleRegistrationUI(cleanPhone);
+            }
+        }
+
+        function handleRegistrationUI(phone) {
+            const regForm = document.getElementById('form-register');
+            if (regForm.classList.contains('hidden')) {
+                regForm.classList.remove('hidden');
+                document.getElementById('btn-auth-action').innerText = "تقديم طلب انضمام";
+                showNotif("الرقم غير مسجل، يرجى ملء البيانات");
+            } else {
+                submitNewUser(phone);
+            }
+        }
+
+        async function submitNewUser(phone) {
+            const name = document.getElementById('reg-name').value;
+            const job = document.getElementById('reg-job').value;
+            const idImg = state.tempFiles['id_img'];
+
+            if (!name || !job || !idImg) return showNotif("أكمل كافة البيانات وصورة الهوية");
+
+            await db.ref('users/' + phone).set({
+                phone, name, job, idImg,
+                role: 'user', status: 'pending', joined: Date.now(), 
+                allowedRooms: [], canPost: false, adminNote: ""
+            });
+            
+            showNotif("تم إرسال الطلب، بانتظار موافقة الإدارة");
+            setTimeout(() => location.reload(), 2500);
+        }
+
+        function saveAndBoot() {
+            localStorage.setItem('arkan_session_v17', JSON.stringify(state.user));
+            bootApp();
+        }
+
+        // --- 5. تشغيل واجهات النظام ---
+        function bootApp() {
+            document.getElementById('view-auth').classList.add('hidden');
+            if (state.isAdmin) {
+                document.getElementById('view-admin').classList.remove('hidden');
+                initAdminEngine();
+                initAdminNewsArchive();
+            } else {
+                document.getElementById('view-member').classList.remove('hidden');
+                document.getElementById('member-name-display').innerText = state.user.name;
+                document.getElementById('member-avatar').innerText = state.user.name[0];
+                initMemberEngine();
+                initRealtimePermissionSync();
+            }
+            initNotificationListeners();
+            initGlobalChatWatchers();
+        }
+
+                function initGlobalChatWatchers() {
+            db.ref('rooms').on('value', snap => {
+                snap.forEach(roomSnap => {
+                    const roomId = roomSnap.key;
+                    const roomTitle = roomSnap.val().title;
+                    
+                    const hasAccess = state.isAdmin || (state.user.allowedRooms && state.user.allowedRooms.includes(roomId));
+                    if (!hasAccess) return;
+
+                    db.ref('messages/' + roomId).on('value', msgSnap => {
+                        let count = 0;
+                        const lastSeenTime = state.lastSeen[roomId] || 0;
+                        let latestMsg = null;
+
+                        msgSnap.forEach(m => {
+                            const msg = m.val();
+                            if (msg.time > lastSeenTime && msg.phone !== state.user.phone) {
+                                count++;
+                                latestMsg = msg;
+                            }
+                        });
+
+                        state.unreadCounts[roomId] = count;
+                        updateUnreadUI(roomId, count); // تحديث العلامة الحمراء
+                        
+                        // إطلاق إشعار إذا التطبيق مفتوح والرسالة جديدة
+                        if (count > 0 && state.activeRoom !== roomId && latestMsg && latestMsg.time > state.lastMsgTime) {
+                            if (document.visibilityState !== 'visible' || state.activeRoom !== roomId) {
+                                triggerExternalNotif(`رسالة في ${roomTitle}`, `${latestMsg.sender}: ${latestMsg.text}`);
+                                new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3').play().catch(()=>{});
+                            }
+                            state.lastMsgTime = latestMsg.time;
+                        }
+                    });
+                });
+            });
+        }
+
+                function updateUnreadUI(roomId, count) {
+            // أولاً: تحديث العداد بجانب اسم الغرفة داخل القائمة
+            const badges = document.querySelectorAll(`[id="badge-${roomId}"]`);
+            badges.forEach(badge => {
+                if (count > 0) {
+                    badge.innerText = count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            });
+            
+            // ثانياً: تحديث العداد الكلي فوق أيقونة الدردشة بالأسفل (الرقم الأحمر العام)
+            // نجمع كل التنبيهات من كل الغرف ونعرضها بالأسفل فوراً
+            const total = Object.values(state.unreadCounts).reduce((a, b) => a + b, 0);
+            const globalBadge = document.getElementById('global-unread-badge');
+            if (globalBadge) {
+                if (total > 0) {
+                    globalBadge.innerText = total;
+                    globalBadge.classList.remove('hidden');
+                    // إضافة حركة اهتزاز بسيطة للفت الانتباه
+                    globalBadge.classList.add('animate-bounce');
+                } else {
+                    globalBadge.classList.add('hidden');
+                }
+            }
+        }
+
+
+        function initRealtimePermissionSync() {
+            if (state.isAdmin) return;
+            db.ref('users/' + state.user.phone).on('value', snap => {
+                const u = snap.val();
+                if (!u) return;
+                state.user.allowedRooms = u.allowedRooms || [];
+                state.user.canPost = u.canPost || false;
+                const editor = document.getElementById('member-post-editor');
+                if (state.user.canPost) editor.classList.remove('hidden');
+                else editor.classList.add('hidden');
+                initMemberRoomsUI();
+            });
+        }
+
+        function initNotificationListeners() {
+            db.ref('news').limitToLast(1).on('child_added', snap => {
+                const post = snap.val();
+                if (post.time > state.lastNewsTime) {
+                    showNotif("خبر جديد: " + post.text.substring(0, 30) + "...");
+                    state.lastNewsTime = post.time;
+                }
+            });
+        }
+
+        // --- 6. محرك المدير المطور ---
+        function initAdminEngine() {
+            db.ref('users').on('value', snap => {
+                const pList = document.getElementById('list-pending-users');
+                const aList = document.getElementById('list-active-users');
+                pList.innerHTML = ""; aList.innerHTML = "";
+                state.allUsers = snap.val() || {};
+
+                snap.forEach(child => {
+                    const u = child.val(); if (u.role === 'admin') return;
+                    const card = `
+                    <div class="glass-ui p-4 flex flex-col gap-3 animate__animated animate__fadeIn mb-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                ${u.idImg ? `<img src="${u.idImg}" class="w-10 h-10 rounded-xl object-cover" onclick="zoomImg('${u.idImg}')">` : `<div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-[8px]">No ID</div>`}
+                                <div>
+                                    <p class="text-xs font-black text-white">${u.name}</p>
+                                    <p class="text-[8px] text-white/40 font-bold">${u.job}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                ${u.status === 'pending' ? 
+                                    `<button onclick="approveUser('${child.key}')" class="bg-emerald-500 text-black px-3 py-2 rounded-xl text-[9px] font-black">تفعيل</button>` : 
+                                    `<button onclick="managePerms('${child.key}', '${u.name}')" class="bg-blue-500 text-white px-3 py-2 rounded-xl text-[9px] font-black">صلاحيات</button>`
+                                }
+                                <button onclick="deleteObjectConfirm('users', '${child.key}', 'هذا العضو وكل بياناته')" class="admin-action-btn bg-red-500/20 text-red-400"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div class="admin-note-box">
+                             <div class="flex justify-between items-center mb-1">
+                                <span class="text-[7px] font-black text-amber-500 uppercase">ملاحظة إدارية سرية</span>
+                                <button onclick="editAdminNote('${child.key}')" class="text-white/40 hover:text-white"><i class="fa-solid fa-pen-to-square text-[9px]"></i></button>
+                             </div>
+                             <p class="text-[9px] text-white/80 italic font-medium" id="note-text-${child.key}">${u.adminNote || 'لا توجد ملاحظات...'}</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 mt-1 border-t border-white/5 pt-2">
+                            <span class="text-[8px] text-white/40">النشر: <b class="cursor-pointer ${u.canPost ? 'text-emerald-400' : 'text-red-400'}" onclick="togglePostAuth('${child.key}', ${u.canPost})">${u.canPost ? 'مفعل' : 'معطل'}</b></span>
+                            <span class="text-[8px] text-white/40">الغرف: <b class="text-white">${u.allowedRooms ? u.allowedRooms.length : 0}</b></span>
+                        </div>
+                    </div>`;
+                    if (u.status === 'pending') pList.innerHTML += card; else aList.innerHTML += card;
+                });
+            });
+
+            db.ref('orders').on('value', snap => {
+                const box = document.getElementById('list-all-orders'); box.innerHTML = "";
+                snap.forEach(child => {
+                    const o = child.val();
+                    box.innerHTML = `
+                    <div class="glass-ui p-6 border-l-4 border-amber-500 animate__animated animate__slideInRight mb-4 relative">
+                        <button onclick="deleteObjectConfirm('orders', '${child.key}', 'هذه المعاملة')" class="absolute top-4 left-4 text-red-400/50 hover:text-red-400 transition-all"><i class="fa-solid fa-trash-can"></i></button>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h5 class="text-white font-black text-xs">${o.name}</h5>
+                                <p class="text-[8px] text-emerald-400 font-bold">إلى: ${o.target}</p>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-white/60 bg-black/30 p-4 rounded-xl mb-4 italic leading-relaxed">"${o.msg}"</p>
+                        ${o.file ? `<button onclick="zoomImg('${o.file}')" class="bg-emerald-600/20 text-emerald-400 w-full py-3 rounded-xl text-[9px] font-black mb-3 border border-emerald-500/30">📎 عرض المرفق</button>` : ''}
+                        <button onclick="sendReply('${child.key}')" class="w-full bg-amber-500 text-black py-3 rounded-xl font-black text-[9px]">${o.reply ? 'تحديث الرد' : 'إضافة رد رسمي'}</button>
+                    </div>` + box.innerHTML;
+                });
+            });
+
+            db.ref('rooms').on('value', snap => {
+                const list = document.getElementById('list-admin-rooms'); list.innerHTML = "";
+                snap.forEach(child => {
+                    list.innerHTML += `
+                    <div class="glass-ui p-4 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="room-relative">
+                                <span class="text-xs font-black text-white">${child.val().title}</span>
+                                <div id="badge-${child.key}" class="hidden notif-badge">0</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openChat('${child.key}', '${child.val().title}')" class="bg-emerald-500 text-black px-4 py-2 rounded-xl text-[9px] font-black">فتح</button>
+                            <button onclick="deleteObjectConfirm('rooms', '${child.key}', 'الغرفة بجميع رسائلها')" class="admin-action-btn bg-red-500/20 text-red-400"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>`;
+                    setTimeout(() => updateUnreadUI(child.key, state.unreadCounts[child.key] || 0), 100);
+                });
+            });
+        }
+
+        async function deleteObjectConfirm(path, key, label) {
+            if (confirm(`هل أنت متأكد من حذف ${label}؟ لا يمكن التراجع عن هذه العملية.`)) {
+                await db.ref(`${path}/${key}`).remove();
+                if (path === 'rooms') await db.ref(`messages/${key}`).remove();
+                showNotif("تم الحذف بنجاح");
+            }
+        }
+
+        async function editAdminNote(ukey) {
+            const current = document.getElementById(`note-text-${ukey}`).innerText;
+            const newNote = prompt("تعديل الملاحظة الإدارية (سرية):", current === 'لا توجد ملاحظات...' ? '' : current);
+            if (newNote !== null) {
+                await db.ref('users/' + ukey).update({ adminNote: newNote });
+                showNotif("تم حفظ الملاحظة");
+            }
+        }
+
+        async function togglePostAuth(ukey, currentStatus) {
+            await db.ref('users/' + ukey).update({ canPost: !currentStatus });
+            showNotif("تحديث صلاحية النشر");
+        }
+
+        function initAdminNewsArchive() {
+            db.ref('news').on('value', snap => {
+                const historyBox = document.getElementById('list-news-history');
+                historyBox.innerHTML = "";
+                snap.forEach(child => {
+                    const n = child.val();
+                    historyBox.innerHTML = `
+                    <div class="glass-ui p-4 animate__animated animate__fadeInUp relative group">
+                        <button onclick="deleteObjectConfirm('news', '${child.key}', 'هذا المنشور')" class="absolute top-2 left-2 text-red-400 opacity-20 group-hover:opacity-100 transition-all text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                        <p class="text-[7px] text-amber-400 font-black mb-1">الناشر: ${n.sender || 'المدير'}</p>
+                        <p class="text-[10px] text-white font-bold leading-relaxed mb-2">${n.text}</p>
+                        <p class="text-[7px] text-emerald-500 font-black">${new Date(n.time).toLocaleString('ar-IQ')}</p>
+                        ${n.img ? `<img src="${n.img}" class="mt-2 w-20 h-20 object-cover rounded-lg border border-white/10">` : ''}
+                    </div>` + historyBox.innerHTML;
+                });
+            });
+        }
+
+        // --- 7. محرك العضو ---
+        function initMemberEngine() {
+            db.ref('news').on('value', snap => {
+                const container = document.getElementById('container-news'); container.innerHTML = "";
+                snap.forEach(child => {
+                    const n = child.val();
+                    container.innerHTML = `
+                    <div class="elite-card animate__animated animate__fadeInUp relative">
+                        ${state.isAdmin ? `<button onclick="deleteObjectConfirm('news', '${child.key}', 'هذا الخبر')" class="absolute top-4 left-4 text-red-500/20 text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-emerald-950 rounded-xl flex items-center justify-center text-white text-xs font-black">
+                                ${n.sender ? n.sender[0] : 'A'}
+                            </div>
+                            <div>
+                                <p class="text-xs font-black">${n.sender || 'أركان البدري'}</p>
+                                <p class="text-[8px] text-slate-400 font-bold">${new Date(n.time).toLocaleString('ar-IQ')}</p>
+                            </div>
+                        </div>
+                        <p class="text-xs font-bold text-slate-700 leading-relaxed mb-4">${n.text}</p>
+                        ${n.img ? `<img src="${n.img}" class="w-full rounded-2xl shadow-sm" onclick="zoomImg('${n.img}')">` : ''}
+                    </div>` + container.innerHTML;
+                });
+            });
+
+            initMemberRoomsUI();
+
+            db.ref('orders').on('value', snap => {
+                const container = document.getElementById('container-my-orders'); container.innerHTML = "";
+                snap.forEach(child => {
+                    const o = child.val();
+                    if (o.phone === state.user.phone) {
+                        container.innerHTML = `
+                        <div class="elite-card border-r-4 border-emerald-950 animate__animated animate__fadeIn">
+                            <h5 class="text-xs font-black text-slate-800 mb-2">${o.target}</h5>
+                            <p class="text-[10px] text-slate-500 mb-4 line-clamp-2 italic">"${o.msg}"</p>
+                            ${o.reply ? `<div class="p-3 bg-emerald-50 rounded-xl text-[10px] font-black text-emerald-900 border border-emerald-100">رد أركان: ${o.reply}</div>` : `<p class="text-[8px] font-black text-amber-600 uppercase">بانتظار المراجعة...</p>`}
+                        </div>` + container.innerHTML;
+                    }
+                });
+            });
+        }
+
+        function initMemberRoomsUI() {
+            db.ref('rooms').once('value', snap => {
+                const container = document.getElementById('container-rooms'); 
+                container.innerHTML = "";
+                snap.forEach(child => {
+                    const hasAccess = (state.user.allowedRooms || []).includes(child.key) || state.isAdmin;
+                    if (hasAccess) {
+                        container.innerHTML += `
+                        <div class="elite-card p-4 flex items-center justify-between animate__animated animate__fadeIn">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 relative">
+                                    <i class="fa-solid fa-unlock"></i>
+                                    <div id="badge-${child.key}" class="hidden notif-badge">0</div>
+                                </div>
+                                <h5 class="text-xs font-black text-slate-800">${child.val().title}</h5>
+                            </div>
+                            <button onclick="openChat('${child.key}', '${child.val().title}')" class="bg-emerald-950 text-white px-5 py-2 rounded-xl text-[9px] font-black">دخول</button>
+                        </div>`;
+                        setTimeout(() => updateUnreadUI(child.key, state.unreadCounts[child.key] || 0), 100);
+                    }
+                });
+            });
+        }
+
+        async function publishNews() {
+            const textInput = document.getElementById('admin-news-input');
+            const text = textInput.value;
+            const img = state.tempFiles['news_img'] || null;
+            if (!text) return showNotif("اكتب نصاً للنشر");
+            await db.ref('news').push({ text, img, time: Date.now(), sender: "الإدارة العامة" });
+            showNotif("تم النشر");
+            textInput.value = "";
+            state.tempFiles['news_img'] = null;
+            document.getElementById('label-admin-img').innerText = "إرفاق صورة للمنشور";
+        }
+
+        async function publishMemberNews() {
+            const textInput = document.getElementById('member-news-input');
+            const text = textInput.value;
+            if (!text) return showNotif("اكتب نص الخبر");
+            await db.ref('news').push({ text, sender: state.user.name, time: Date.now(), img: null });
+            showNotif("تم النشر");
+            textInput.value = "";
+        }
+
+        function exportUsersToExcel() {
+            const data = [];
+            Object.values(state.allUsers).forEach(u => {
+                data.push({ "الاسم الكامل": u.name, "رقم الهاتف": u.phone, "المسمى الوظيفي": u.job, "الحالة": u.status });
+            });
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "الأعضاء");
+            XLSX.writeFile(workbook, `نخب_ذي_قار_${new Date().toLocaleDateString()}.xlsx`);
+        }
+
+        function importUsersFromExcel(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet);
+                    for (let row of rows) {
+                        const phone = String(row["رقم الهاتف"] || row["الهاتف"] || "");
+                        if (phone) {
+                            const cleanPhone = phone.startsWith('0') ? '964' + phone.substring(1) : phone;
+                            await db.ref('users/' + cleanPhone).update({
+                                phone: cleanPhone, name: row["الاسم الكامل"] || "بدون اسم", 
+                                job: row["المسمى الوظيفي"] || "عضو",
+                                role: 'user', status: 'active', joined: Date.now()
+                            });
+                        }
+                    }
+                    showNotif("تم استيراد البيانات بنجاح");
+                } catch(err) { showNotif("فشل الاستيراد: تأكد من صيفة الملف"); }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- 10. نظام الدردشة المطور ---
+        function openChat(id, title) {
+            state.activeRoom = id;
+            state.lastSeen[id] = Date.now();
+            localStorage.setItem('arkan_last_seen', JSON.stringify(state.lastSeen));
+            state.unreadCounts[id] = 0;
+            updateUnreadUI(id, 0);
+
+            document.getElementById('chat-title').innerText = title;
+            document.getElementById('chat-window').classList.remove('hidden');
+            
+            db.ref('messages/' + id).off();
+            db.ref('messages/' + id).on('value', snap => {
+                const scroller = document.getElementById('chat-scroller');
+                scroller.innerHTML = "";
+                snap.forEach(child => {
+                    const m = child.val();
+                    const isMe = m.phone === state.user.phone;
+                    scroller.innerHTML += `
+                    <div class="msg-bubble ${isMe ? 'msg-me' : 'msg-them'} animate__animated animate__fadeInUp">
+                        ${state.isAdmin ? `<i class="fa-solid fa-trash-can admin-trash-trigger absolute -top-2 -left-2 text-red-500 bg-white rounded-full p-1 shadow-sm" onclick="deleteObjectConfirm('messages/${state.activeRoom}', '${child.key}', 'هذه الرسالة')"></i>` : ''}
+                        <p class="text-[8px] opacity-50 mb-1">${m.sender}</p>
+                        <p>${m.text}</p>
+                        <span class="message-timestamp">${new Date(m.time).toLocaleTimeString('ar-IQ', {hour:'2-digit', minute:'2-digit'})}</span>
+                    </div>`;
+                });
+                scroller.scrollTo(0, scroller.scrollHeight);
+                state.lastSeen[id] = Date.now();
+                localStorage.setItem('arkan_last_seen', JSON.stringify(state.lastSeen));
+            });
+        }
+
+        async function sendMsg() {
+            const input = document.getElementById('msg-input');
+            const val = input.value.trim();
+            if (!val || !state.activeRoom) return;
+            const newMsg = { sender: state.user.name, phone: state.user.phone, text: val, time: Date.now() };
+            await db.ref('messages/' + state.activeRoom).push(newMsg);
+            input.value = "";
+            state.lastSeen[state.activeRoom] = Date.now();
+        }
+
+        function closeChat() {
+            if (state.activeRoom) {
+                state.lastSeen[state.activeRoom] = Date.now();
+                localStorage.setItem('arkan_last_seen', JSON.stringify(state.lastSeen));
+                db.ref('messages/' + state.activeRoom).off();
+            }
+            state.activeRoom = null;
+            document.getElementById('chat-window').classList.add('hidden');
+        }
+
+        // --- 11. أدوات الإدارة والمساعدة ---
+        function approveUser(key) {
+            db.ref('users/' + key).update({ status: 'active' });
+            showNotif("تم تفعيل العضو");
+        }
+
+        async function managePerms(ukey, uname) {
+            const rSnap = await db.ref('rooms').once('value');
+            const uSnap = await db.ref('users/' + ukey + '/allowedRooms').once('value');
+            let allowed = uSnap.val() || [];
+            let rKeys = []; let i = 1; let menu = `صلاحيات ${uname}:\n\n`;
+            rSnap.forEach(r => { 
+                menu += `${i}- ${r.val().title} [${allowed.includes(r.key) ? '✅' : '❌'}]\n`; 
+                rKeys.push(r.key); i++; 
+            });
+            const choice = prompt(menu + "\nأدخل الرقم للتبديل (0 للحفظ):");
+            if (choice && choice != "0" && rKeys[choice-1]) {
+                const target = rKeys[choice-1];
+                if (allowed.includes(target)) allowed = allowed.filter(k => k !== target);
+                else allowed.push(target);
+                await db.ref('users/' + ukey).update({ allowedRooms: allowed });
+                managePerms(ukey, uname); 
+            }
+        }
+
+        async function sendReply(key) {
+            const r = prompt("اكتب الرد الرسمي:");
+            if (r) await db.ref('orders/' + key).update({ reply: r });
+        }
+
+        function createRoom() {
+            const t = document.getElementById('admin-room-name').value;
+            if (t) db.ref('rooms').push({ title: t });
+            document.getElementById('admin-room-name').value = "";
+        }
+
+        function handleFileSelect(input, labelId, stateKey) {
+            if (!input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                state.tempFiles[stateKey] = e.target.result;
+                document.getElementById(labelId).innerText = "✅ تم التحميل";
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function toggleMemberSub(view) {
+            document.querySelectorAll('.member-subview').forEach(v => v.classList.add('hidden'));
+            document.getElementById('subview-' + view).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-nav-' + view).classList.add('active');
+        }
+
+        function toggleAdminSub(view) {
+            document.querySelectorAll('.admin-pane').forEach(p => p.classList.add('hidden'));
+            document.getElementById('admin-sub-' + view).classList.remove('hidden');
+            document.querySelectorAll('.admin-tab').forEach(b => {
+                b.classList.replace('bg-emerald-600', 'glass-ui');
+                b.classList.replace('text-white', 'text-white/40');
+            });
+            event.currentTarget.classList.replace('glass-ui', 'bg-emerald-600');
+            event.currentTarget.classList.replace('text-white/40', 'text-white');
+        }
+
+        async function sendOrder() {
+            const target = document.getElementById('order-to').value;
+            const msg = document.getElementById('order-body').value;
+            const file = state.tempFiles['order_file'] || null;
+            if (!target || !msg) return showNotif("أكمل التفاصيل");
+            await db.ref('orders').push({ name: state.user.name, phone: state.user.phone, target, msg, file, time: Date.now() });
+            showNotif("تم إرسال الطلب");
+            document.getElementById('order-body').value = "";
+            document.getElementById('order-to').value = "";
+            state.tempFiles['order_file'] = null;
+            document.getElementById('label-order-file').innerText = "📎 إرفاق ملف / صورة";
+        }
+
+        function zoomImg(src) {
+            const z = document.createElement('div');
+            z.className = "fixed inset-0 bg-black/95 z-[10001] flex flex-col items-center justify-center p-6 animate__animated animate__fadeIn";
+            z.innerHTML = `<img src="${src}" class="max-w-full max-h-[80vh] rounded-2xl mb-8 shadow-2xl"><button class="bg-white text-black font-black px-12 py-4 rounded-2xl active:scale-90 transition-all">إغلاق العرض</button>`;
+            z.onclick = () => z.remove();
+            document.body.appendChild(z);
+        }
+
+        function systemLogout() {
+            if(confirm("هل تريد تسجيل الخروج؟")) {
+                localStorage.removeItem('arkan_session_v17');
+                location.reload();
+            }
+        }
+        // تفعيل خدمة الرسائل السحابية (FCM)
+const messaging = firebase.messaging();
+
+// طلب إذن الاشعارات من المتصفح
+function requestNotificationPermission() {
+    Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+            console.log('Notification permission granted.');
+            // الحصول على التوكن الخاص بالجهاز
+            messaging.getToken({ vapidKey: 'm58OJf1mYVHGuO1SJa2QydGIbL0gFnjQ6babKb5ayME' }).then((currentToken) => {
+                if (currentToken) {
+                    // خزن التوكن بقاعدة البيانات تحت اسم المستخدم حتى نكدر نرسله اشعار
+                    if(state.user) {
+                        db.ref('users/' + state.user.phone).update({ fcmToken: currentToken });
+                    }
+                }
+            });
+        }
+    });
+}
+
+// تشغيل الطلب عند الدخول
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
+    .then((registration) => {
+        console.log('Service Worker registered');
+        requestNotificationPermission();
+    });
+}
+
+    </script>
+</body>
+</html>
